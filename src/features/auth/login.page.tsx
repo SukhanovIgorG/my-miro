@@ -1,4 +1,8 @@
+import { type SubmitHandler, useForm } from 'react-hook-form';
+
+import { instance } from '@/shared/api/instance';
 import { ROUTES } from '@/shared/model/routes';
+import { useSession } from '@/shared/model/session';
 import {
   Button,
   Card,
@@ -11,7 +15,31 @@ import {
   Label,
 } from '@/shared/ui/kit';
 
+interface RegisterFormType {
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
 function LoginPage() {
+  const { login } = useSession();
+  const { handleSubmit, register } = useForm<RegisterFormType>({
+    mode: 'onSubmit',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const onSubmit: SubmitHandler<RegisterFormType> = async (data) => {
+    const dto = {
+      email: data.email,
+      password: data.password,
+    };
+    const res = await instance.post('auth/login', dto);
+    login(res.data.accessToken);
+  };
+
   return (
     <div className="w-full h-screen flex justify-center items-center">
       <Card className="w-full max-w-sm">
@@ -20,11 +48,12 @@ function LoginPage() {
           <CardDescription>Введите свои данные для входа.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit(onSubmit)} id="login-form">
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
+                  {...register('email', { required: true })}
                   id="email"
                   type="email"
                   placeholder="m@example.com"
@@ -41,13 +70,18 @@ function LoginPage() {
                     Забыли пароль?
                   </a>
                 </div>
-                <Input id="password" type="password" required />
+                <Input
+                  {...register('password', { required: true })}
+                  id="password"
+                  type="password"
+                  required
+                />
               </div>
             </div>
           </form>
         </CardContent>
         <CardFooter className="flex-col gap-2">
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" form="login-form">
             Войти
           </Button>
           <Button variant="outline" className="w-full">

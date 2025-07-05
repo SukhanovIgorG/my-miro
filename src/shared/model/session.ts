@@ -22,6 +22,7 @@ export const useSession = createGStore(() => {
   const login = (token: string) => {
     localStorage.setItem(TOKEN_KEY, token);
     setToken(token);
+    window.location.replace('/');
   };
 
   const logout = () => {
@@ -51,6 +52,10 @@ export const useSession = createGStore(() => {
               logout();
               return null;
             }
+          })
+          .catch(() => {
+            logout();
+            return null;
           })
           .finally(() => {
             refreshTokenPromise = null;
